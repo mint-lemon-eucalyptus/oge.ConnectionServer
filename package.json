@@ -1,0 +1,19 @@
+{
+    "name": "ConnectionServer",
+    "version": "0.0.2",
+    "description": "",
+    "readme": "ERROR: No README data found!",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:mint-lemon-eucalyptus/oge.ConnectionServer.git"
+    },
+    "author": "mint-lemon",
+    "dependencies": {
+        "ws": "*"
+    },
+    "license": "ISC"
+}
