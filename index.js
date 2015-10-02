@@ -3,88 +3,26 @@ var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var WS = require('ws');
 var WebSocketServer = WS.Server;
-var WsClient = require('../../oge/WsClient/index.js');
-var helpers = require('./util/helpers.js')
 var http = require('http');
 
-
-var Server = WsClient.Server;
-var User = WsClient.User;
 var qw;
 
-function ConnectionServer($config, Users, Qw) {
+function ConnectionServer($config, Qw) {
     qw = Qw.log(this);
     //todo this is network interface class
-    var self = this;
     EventEmitter.call(this);
 
     this.wss = null;
     this.config = $config;
-    this.commands = {
-        auth: function (ws, msg) {
-            self._authenticator.auth('token', msg.data, function (err, userProfile) {
-                if (err) {
-                    qw('authError'.red, err, msg);
-                    ws.send(JSON.stringify({cmd: 'error', code: err.code}));
-                    ws.close(1000);
-                } else {
-                    qw('userProfile from auth:', userProfile);
-                    self.emit(self.EVENT_USER_AUTH_SUCCESS, new User(userProfile, ws));
-                }
-            });
-        },
-        auth_np: function (ws, msg) {
-            if (!msg.data || !msg.data.name) {
-                ws.close(1000);
-                return;
-            }
-            msg.data.token = helpers.generateUid();
-            self._authenticator.auth('local', msg.data, function (err, userProfile) {
-                if (err) {
-                    qw('authError'.red, err, msg);
-                    ws.send(JSON.stringify({cmd: 'auth_e', code: err.code}));
-                    ws.close(1000);
-                } else {
-                    qw('userProfile from auth:', userProfile);
-                    self.emit(self.EVENT_USER_AUTH_SUCCESS, new User(userProfile, ws));
-                }
-            });
-        },
-        register: function (ws, msg) {
-            qw(msg);
-            var token = helpers.generateUid();
-            Users.register({name: msg.name.trim(), pass: msg.pass, token: token, type: 0}, function (err, rs) {
-                if (err) {
-                    qw(err);
-                    ws.send(JSON.stringify({cmd: 'reg_fail', code: err.code}));
-                } else {
-                    ws.send(JSON.stringify({cmd: 'reg_ok', profile: rs[0]}));
-                }
-                ws.close(1000);
-            });
-        },
-        slave_auth_ack: function (ws, msg) {        //slave auth request
-            self._authenticator.auth('servertoken', msg.data, function (err, clientProfile) {
-                qw('_serversAuthenticator.auth', err, clientProfile)
-                if (err) {
-                    qw('authError'.red, err, msg);
-                    ws.send(JSON.stringify({cmd: 'auth_error', code: err}));
-                    ws.close(1000);
-                } else {
-                    self.emit(self.EVENT_SERVER_AUTH_SUCCESS, new Server(clientProfile, ws));
-                }
-            });
-        }
-    };
+    this.commands = {    };
 }
 util.inherits(ConnectionServer, EventEmitter);
-ConnectionServer.prototype.useAuthMiddleWare = function (auth) {
-    this._authenticator = auth;
-}
+
 ConnectionServer.prototype.start = function (expressApp) {
     var self = this;
     var host = self.config.host, port = self.config.port;
-    qw('starting at', port, host)
+    qw('starting at', port, host);
+    var options = {autoAcceptConnections: false, clientTracking: false};
     if (expressApp) {
         //use express app as server
         var server = http.createServer(expressApp);
@@ -92,26 +30,24 @@ ConnectionServer.prototype.start = function (expressApp) {
         server.listen(port, host, function () {
             qw(' Server is listening on port ', port);
         });
-        self.wss = new WebSocketServer({
-            server: server,
-            autoAcceptConnections: false, clientTracking: false
-        });
+        options.server = server;
     } else {
-        self.wss = new WebSocketServer({
-            autoAcceptConnections: false,
-            port: port, clientTracking: false, host: host
-        });
+        options.host = host;
+        options.port = port;
     }
+    self.wss = new WebSocketServer(options);
 
     self.wss.on('connection', function (ws) {
         qw('new connection');
+        ws.sendJSON = function (a) {
+            ws.send(JSON.stringify(a));
+        };
         ws.once('message', function (message) {
             var msg;
 //            qw('WS message:', message)
             try {
                 msg = JSON.parse(message);
             } catch (e) {
-                self.emit(self.EVENT_LOG, 'parseError: "' + message + '"');
                 ws.close(1000);
                 return;
             }
@@ -119,7 +55,7 @@ ConnectionServer.prototype.start = function (expressApp) {
                 self.commands[msg.cmd](ws, msg);
             } else {
                 if (ws.readyState === 1) {
-                    ws.send(JSON.stringify({cmd: 'error', code: 'auth protocol mismatch', notice: msg.cmd}));
+                    ws.sendJSON({cmd: 'error', code: 'auth protocol mismatch', notice: msg.cmd});
                 }
                 ws.close(1000);
             }
@@ -128,14 +64,69 @@ ConnectionServer.prototype.start = function (expressApp) {
     self.emit(self.EVENT_START_LISTENING);
 };
 
+ConnectionServer.prototype.addCommand = function (name, fn) {
+    if (typeof  fn !== "function") {
+        throw Error('command must be a function');
+    }
+    if (typeof  name !== "string") {
+        throw Error('command name must be a string');
+    }
+    this.commands[name] = fn;
+};
+
+ConnectionServer.prototype.initUserSocket = function (profile, conn) {
+    return new User(profile, conn);
+}
+ConnectionServer.prototype.initServerSocket = function (profile, conn) {
+    return new ServerClient(profile, conn);
+}
+
 ConnectionServer.prototype.EVENT_START_LISTENING = 'EVENT_START_LISTENING';
 
-ConnectionServer.prototype.EVENT_LOG = 'EVENT_LOG';
 
-ConnectionServer.prototype.EVENT_USER_AUTH_SUCCESS = 'EVENT_USER_AUTH_SUCCESS';
+function Client() {
+}
 
-//fired if slave is authenticated successful
+Client.prototype.send = function (js) {
+    if (this.connection.readyState == 1) {
+        this.connection.send(JSON.stringify(js));
+    } else {
+        console.log(this.profile.id, 'connection', this.connection.readyState);
+        throw new Error('socket hang up')
+    }
+};
 
-ConnectionServer.prototype.EVENT_SERVER_AUTH_SUCCESS = 'EVENT_SERVER_AUTH_SUCCESS';
+function User(profile, conn) {
+    User.super_.call(this);
+    this.profile = profile;
+    this.connection = conn;
+    var self = this;
+    self.connection.on('error', function (code) {
+        self.connection.close(code);
+    });
+}
+util.inherits(User, Client);
+User.prototype.getPublicFields = function () {
+    return {
+        id: this.profile.id,
+        name: this.profile.name,
+        dtreg: this.profile.dtreg,
+        currency1: this.profile.currency1,
+        lastdt: this.profile.lastdt,
+        avatar: this.profile.avatar
+    };
+};
+
+
+function ServerClient(profile, conn) {
+    ServerClient.super_.call(this);
+    this.profile = profile;//here token and path
+    this.connection = conn;//here websocket object
+}
+util.inherits(ServerClient, Client);
+
+ServerClient.prototype.getPublicFields = function () {
+    return this.profile;
+};
 
 module.exports = ConnectionServer;

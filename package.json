@@ -1,19 +1,19 @@
 {
-    "name": "ConnectionServer",
-    "version": "0.0.2",
-    "description": "",
-    "readme": "ERROR: No README data found!",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git@github.com:mint-lemon-eucalyptus/oge.ConnectionServer.git"
-    },
-    "author": "mint-lemon",
-    "dependencies": {
-        "ws": "*"
-    },
-    "license": "ISC"
+  "name": "ConnectionServer",
+  "version": "0.1.2",
+  "description": "oge websocket connetion server module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mint-lemon-eucalyptus/oge.ConnectionServer.git"
+  },
+  "author": "mint-lemon",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer/issues"
+  },
+  "homepage": "https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer"
 }
