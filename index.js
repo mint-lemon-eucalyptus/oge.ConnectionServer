@@ -39,27 +39,28 @@ ConnectionServer.prototype.start = function (expressApp) {
 
     self.wss.on('connection', function (ws) {
         qw('new connection');
-        ws.sendJSON = function (a) {
-            ws.send(JSON.stringify(a));
-        };
-        ws.once('message', function (message) {
-            var msg;
-//            qw('WS message:', message)
-            try {
-                msg = JSON.parse(message);
-            } catch (e) {
-                ws.close(1000);
-                return;
-            }
-            if (typeof self.commands[msg.cmd] == 'function') {
-                self.commands[msg.cmd](ws, msg);
-            } else {
-                if (ws.readyState === 1) {
-                    ws.sendJSON({cmd: 'error', code: 'auth protocol mismatch', notice: msg.cmd});
-                }
-                ws.close(1000);
-            }
-        });
+        self.emit(self.EVENT_CONNECTION, ws);
+//        ws.sendJSON = function (a) {
+//            ws.send(JSON.stringify(a));
+//        };
+//        ws.once('message', function (message) {
+//            var msg;
+////            qw('WS message:', message)
+//            try {
+//                msg = JSON.parse(message);
+//            } catch (e) {
+//                ws.close(1000);
+//                return;
+//            }
+//            if (typeof self.commands[msg.cmd] == 'function') {
+//                self.commands[msg.cmd](ws, msg);
+//            } else {
+//                if (ws.readyState === 1) {
+//                    ws.sendJSON({cmd: 'error', code: 'auth protocol mismatch', notice: msg.cmd});
+//                }
+//                ws.close(1000);
+//            }
+//        });
     });
     self.emit(self.EVENT_START_LISTENING);
 };
@@ -82,6 +83,7 @@ ConnectionServer.prototype.initServerSocket = function (profile, conn) {
 }
 
 ConnectionServer.prototype.EVENT_START_LISTENING = 'EVENT_START_LISTENING';
+ConnectionServer.prototype.EVENT_CONNECTION = 'EVENT_CONNECTION';
 
 
 function Client() {
