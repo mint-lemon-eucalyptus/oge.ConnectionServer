@@ -112,6 +112,7 @@ User.prototype.getPublicFields = function () {
         name: this.profile.name,
         dtreg: this.profile.dtreg,
         currency1: this.profile.currency1,
+        currency2: this.profile.currency2,
         lastdt: this.profile.lastdt,
         avatar: this.profile.avatar
     };
