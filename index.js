@@ -38,28 +38,7 @@ ConnectionServer.prototype.start = function (expressApp) {
     self.wss = new WebSocketServer(options);
 
     self.wss.on('connection', function (ws) {
-        qw('new connection');
-        ws.sendJSON = function (a) {
-            ws.send(JSON.stringify(a));
-        };
-        ws.once('message', function (message) {
-            var msg;
-//            qw('WS message:', message)
-            try {
-                msg = JSON.parse(message);
-            } catch (e) {
-                ws.close(1000);
-                return;
-            }
-            if (typeof self.commands[msg.cmd] == 'function') {
-                self.commands[msg.cmd](ws, msg);
-            } else {
-                if (ws.readyState === 1) {
-                    ws.sendJSON({cmd: 'error', code: 'auth protocol mismatch', notice: msg.cmd});
-                }
-                ws.close(1000);
-            }
-        });
+        self.emit('client', new Client(ws));
     });
     self.emit(self.EVENT_START_LISTENING);
 };
@@ -74,59 +53,64 @@ ConnectionServer.prototype.addCommand = function (name, fn) {
     this.commands[name] = fn;
 };
 
-ConnectionServer.prototype.initUserSocket = function (profile, conn) {
-    return new User(profile, conn);
-}
-ConnectionServer.prototype.initServerSocket = function (profile, conn) {
-    return new ServerClient(profile, conn);
-}
-
 ConnectionServer.prototype.EVENT_START_LISTENING = 'EVENT_START_LISTENING';
 
 
-function Client() {
+/**
+ * client profile
+ * @typedef {Object} Profile
+ * @property {Number} id
+ * @property {String} name
+ * @property {String} token
+ * @property {String} dtreg
+ * @property {String} lastdt
+ * @property {String} avatar
+ * @property {Number} currency1
+ * @property {Number} currency2
+ */
+/**
+ * websocket client entity. Used as connection wrapper and client profile holder
+ * @typedef {Object} Client
+ * @property {WebSocket} connection
+ * @property {Profile} profile
+ */
+function Client(conn, profile) {
+    this.profile = profile || {};
+    this.connection = conn;
 }
-
+Client.prototype.close = function (code) {
+    this.connection && this.connection.close(code);
+}
+/**
+ @static
+ @type {number}
+ @const
+ */
+Client.CONNECTING = 0;
+/**
+ @static
+ @type {number}
+ @const
+ */
+Client.OPEN = 1;
+/**
+ @static
+ @type {number}
+ @const
+ */
+Client.CLOSING = 2;
+/**
+ @static
+ @type {number}
+ @const
+ */
+Client.CLOSED = 3;
 Client.prototype.send = function (js) {
     if (this.connection.readyState == 1) {
         this.connection.send(JSON.stringify(js));
-    } else {
+    } else {    //connection is in state CLOSING
         console.log(this.profile.id, 'connection', this.connection.readyState);
-        throw new Error('socket hang up')
     }
-};
-
-function User(profile, conn) {
-    User.super_.call(this);
-    this.profile = profile;
-    this.connection = conn;
-    var self = this;
-    self.connection.on('error', function (code) {
-        self.connection.close(code);
-    });
-}
-util.inherits(User, Client);
-User.prototype.getPublicFields = function () {
-    return {
-        id: this.profile.id,
-        name: this.profile.name,
-        dtreg: this.profile.dtreg,
-        currency1: this.profile.currency1,
-        lastdt: this.profile.lastdt,
-        avatar: this.profile.avatar
-    };
-};
-
-
-function ServerClient(profile, conn) {
-    ServerClient.super_.call(this);
-    this.profile = profile;//here token and path
-    this.connection = conn;//here websocket object
-}
-util.inherits(ServerClient, Client);
-
-ServerClient.prototype.getPublicFields = function () {
-    return this.profile;
 };
 
 module.exports = ConnectionServer;
