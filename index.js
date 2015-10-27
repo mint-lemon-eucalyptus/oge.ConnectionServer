@@ -14,7 +14,7 @@ function ConnectionServer($config, Qw) {
 
     this.wss = null;
     this.config = $config;
-    this.commands = {    };
+    this.commands = {};
 }
 util.inherits(ConnectionServer, EventEmitter);
 
@@ -106,10 +106,11 @@ Client.CLOSING = 2;
  */
 Client.CLOSED = 3;
 Client.prototype.send = function (js) {
-    if (this.connection.readyState == 1) {
+    try {
         this.connection.send(JSON.stringify(js));
-    } else {    //connection is in state CLOSING
-        console.log(this.profile.id, 'connection', this.connection.readyState);
+    } catch (e) {    //connection is in state CLOSING
+//        console.log(this.profile.id, 'connection', this.connection.readyState,js);
+        this.connection.close(1000)
     }
 };
 
