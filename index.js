@@ -2,7 +2,6 @@
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var WS = require('ws');
-var Client = require('./Client');
 var WebSocketServer = WS.Server;
 var http = require('http');
 
@@ -36,10 +35,15 @@ ConnectionServer.prototype.start = function (expressApp) {
         options.host = host;
         options.port = port;
     }
+    var connectionsCounter = 0;
     self.wss = new WebSocketServer(options);
 
     self.wss.on('connection', function (ws) {
-        self.emit('client', new Client(ws));
+        ws.__id = ++connectionsCounter;
+        ws.sendJson = function (a) {
+            this.send(JSON.stringify(a));
+        };
+        self.emit('client', ws);    //генерируем событие с Connection
     });
     self.emit(self.EVENT_START_LISTENING);
 };
