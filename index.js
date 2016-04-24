@@ -41,7 +41,11 @@ ConnectionServer.prototype.start = function (expressApp) {
     self.wss.on('connection', function (ws) {
         ws.__id = ++connectionsCounter;
         ws.sendJson = function (a) {
-            this.send(JSON.stringify(a));
+            try {
+                this.send(JSON.stringify(a));
+            } catch (e) {
+                console.log(e);
+            }
         };
         self.emit('client', ws);    //генерируем событие с Connection
     });
