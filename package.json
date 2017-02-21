@@ -11,7 +11,7 @@
         "url": "git@github.com:mint-lemon-eucalyptus/oge.ConnectionServer.git"
     },
     "dependencies": {
-        "ws": "*"
+        "ws": "^0.7.1"
     },
     "author": "mint-lemon",
     "license": "ISC",
