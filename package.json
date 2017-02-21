@@ -1,29 +1,29 @@
 {
-  "name": "ConnectionServer",
-  "version": "0.5.2",
-  "description": "oge websocket connetion server module",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:mint-lemon-eucalyptus/oge.ConnectionServer.git"
-  },
-  "dependencies": {
-    "ws": "*"
-  },
-  "author": {
-    "name": "mint-lemon"
-  },
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer/issues"
-  },
-  "homepage": "https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer",
-  "readme": "ERROR: No README data found!",
-  "_id": "ConnectionServer@0.1.2",
-  "_shasum": "253dc13e5ee0257ea3baf14b9f58402649267896",
-  "_resolved": "git+https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer.git#41d2d6d0e58e70f0ab5d2df4b45a3660a1a872fa",
-  "_from": "ConnectionServer@git+https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer.git"
+    "name": "ConnectionServer",
+    "version": "0.5.2",
+    "description": "oge websocket connetion server module",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:mint-lemon-eucalyptus/oge.ConnectionServer.git"
+    },
+    "dependencies": {
+        "ws": "^0.7.1"
+    },
+    "author": {
+        "name": "mint-lemon"
+    },
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer/issues"
+    },
+    "homepage": "https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer",
+    "readme": "ERROR: No README data found!",
+    "_id": "ConnectionServer@0.1.2",
+    "_shasum": "253dc13e5ee0257ea3baf14b9f58402649267896",
+    "_resolved": "git+https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer.git#41d2d6d0e58e70f0ab5d2df4b45a3660a1a872fa",
+    "_from": "ConnectionServer@git+https://github.com/mint-lemon-eucalyptus/oge.ConnectionServer.git"
 }
