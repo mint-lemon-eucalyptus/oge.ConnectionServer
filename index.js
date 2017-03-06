@@ -82,7 +82,7 @@ function Client(conn, profile) {
 }
 Client.prototype.close = function (code) {
     this.connection && this.connection.close(code);
-}
+};
 /**
  @static
  @type {number}
