@@ -44,7 +44,7 @@ ConnectionServer.prototype.start = function (expressApp) {
             try {
                 this.send(JSON.stringify(a));
             } catch (e) {
-                console.log(e);
+                console.log('connection.sendJson error',e);
             }
         };
         self.emit('client', ws);    //генерируем событие с Connection
